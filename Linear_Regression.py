@@ -36,7 +36,12 @@ class Linear_Regression():
             y_train: Matrix or 2-D array. Input target value.
         """
         self.X = np.mat(X_train)
-        self.y = np.reshape(y_train, (-1, 1))
+        if isinstance(y_train, pd.core.series.Series):
+            self.y = np.reshape(y_train.values, (-1, 1))
+        elif y_train.ndim == 1:
+            self.y = np.reshape(y_train, (-1, 1))
+        else:
+            self.y = y_train
         
         # adds column of all 1's to first column of X if intercept is True.
         if self.intercept:
@@ -74,8 +79,10 @@ class Linear_Regression():
         Performs gradient descent to find the model's optimal coefficients.
         Cost function: SE = \sum^{n}_{i=1}(Y_i - \hat{Y}_i)^2
         """
-        pre_error = float('inf')
         for i in range(self.num_iter):
+            if i == 0:
+                pre_error = np.sum(np.power(np.dot(self.X, self.coef) - self.y, 2))
+                
             # Calculate the gradient and temporary coefficient to compare
             temp_coef = self.coef - self.alpha * self.gradient()  
 
@@ -98,9 +105,9 @@ class Linear_Regression():
                 self.alpha *= 0.9 
 
             # Update previous error for next iteration
-            pre_error = current_error 
+            pre_error = min(pre_error, current_error)
             # Add loss to loss list we create
-            self.loss.append(current_error)
+            self.loss.append(min(pre_error, current_error))
 
             if i % 1000 == 0:
                 print('Iteration: ' + str(i))
@@ -121,10 +128,8 @@ class Linear_Regression():
         Returns a prediction of given data point.
         """
         x = np.matrix(x)
-        if self.intercept:
-            x = np.hstack(([1], x))
-        return float(x * self.coef)
-    
+        return np.array(np.dot(x, self.coef)).flatten()
+
 
     def predict(self, X):
         """
@@ -144,6 +149,6 @@ class Linear_Regression():
             X = np.hstack((ones, X))
             
         # Calls ind_predict for each value in the X matrix.
-        predictions = [self.ind_predict(x) for x in X]
+        predictions = np.array([self.ind_predict(x) for x in X]).flatten()
         return predictions
 
