@@ -22,7 +22,11 @@ class Linear_Regression():
         self.coef = None
         self.loss = []
         
+
+    def __str__(self):
+        return self.model_name
     
+
     def fit(self, X_train, y_train):
         """
         Saves datasets to our model, and performs gradient descent.
@@ -32,7 +36,7 @@ class Linear_Regression():
             y_train: Matrix or 2-D array. Input target value.
         """
         self.X = np.mat(X_train)
-        self.y = np.mat(y_train).T
+        self.y = np.reshape(y_train, (-1, 1))
         
         # adds column of all 1's to first column of X if intercept is True.
         if self.intercept:
@@ -44,6 +48,7 @@ class Linear_Regression():
         else:
             # initializes coefficient with uniform from [-1, 1]
             self.coef = np.random.rand(self.X.shape[1]) * 2 - 1
+            self.coef = np.reshape(self.coef, (-1, 1))
 
         # Call gradient_descent function to train.
         self.gradient_descent()
@@ -57,10 +62,11 @@ class Linear_Regression():
         Returns the gradient of the cost function.
         """
         y_pred = np.dot(self.X, self.coef)
-        error = y_pred - self.y
+        y_pred = np.reshape(y_pred, (-1, 1))
+        error = np.subtract(self.y, y_pred)
 
         # Return gradient of cost function
-        return -2 * np.dot(self.X.T, error) / self.X.shape[0]
+        return -2 * np.dot(self.X.T, error)
         
 
     def gradient_descent(self):
@@ -75,7 +81,7 @@ class Linear_Regression():
 
             # Calculate error for early stopping
             y_pred = np.dot(self.X, temp_coef)
-            current_error = np.sum(np.power(y_pred - self.y, 2)) / self.X.shape[0]
+            current_error = np.sum(np.power(y_pred - self.y, 2))
 
             ### This is the early stop, don't modify the following three lines.
             if (abs(pre_error - current_error) < self.early_stop) | (abs(abs(pre_error - current_error) / pre_error) < self.early_stop):
