@@ -1,10 +1,10 @@
+import pandas as pd
+import numpy as np
+
 """
 Naive Bayes classifer
 By: Minchan Kim
 """
-
-import pandas as pd
-import numpy as np
 
 class Naive_Bayes():
     """
