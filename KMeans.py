@@ -1,69 +1,59 @@
 import pandas as pd
 import numpy as np
 
+"""
+KMeans classifer
+By: Minchan Kim
+"""
+
 class KMeans():
-    def __init__(self, k = 3, num_iter = 1000):
+    def __init__(self, k=3, num_iter=1000):
         """
-            Some initializations, if neccesary
-            
-            Parameter:
-                k: Number of clusters we are trying to classify
-                num_iter: Number of iterations we are going to loop
+        Initialize the KMeans model
         """
-        
         self.model_name = 'KMeans'
         self.k = k
         self.num_iter = num_iter
         self.centers = None
         self.RM = None
-        
+
+
     def train(self, X):
         """
-            Train the given dataset
-            
-            Parameter:
-                X: Matrix or 2-D array. Input feature matrix.
-                
-            Return:
-                self: the whole model containing relevant information
+        Train the KMeans model
+        ---
+        Parameters:
+            X: Input feature matrix
+        ---
+        Return:
+            self
         """
-        
         r, c = X.shape
-        centers = []
-        RM = np.zeros((r, self.k))
-        
-        """
-            TODO: 1. Modify the following code to randomly choose the initial centers
-        """
-        initials = [1,1,1]
-        for i in initials:
-            centers.append(X[i, :])
-        centers = np.array(centers)
-        
-        for i in range(self.num_iter):
-            for j in range(r):
-                """
-                    TODO: 2. Modify the following code to update the Relation Matrix
-                """
-                distance = [0]
-                minpos = 0
-                
-                temp_rm = np.zeros(self.k)
-                temp_rm[minpos] = 1
-                RM[j,:] = temp_rm
-            new_centers = centers.copy()
-            for l in range(self.k):
-                """
-                    TODO: 3. Modify the following code to update the centers
-                """
-                row_index = (RM[:, l] == 1).flatten()
-                all_l = X[row_index, :]
-                new_centers[l, :] = [0]
-            if np.sum(new_centers - centers) < 0.000000000000000000001:
-                self.centers = new_centers
-                self.RM = RM
-                return self
+        # Randomly choose the initial centers
+        centers = X[np.random.choice(r, self.k, replace=False)]
+
+        for _ in range(self.num_iter):
+            RM = np.zeros((r, self.k))
+
+            # Assign data points to the nearest centroid
+            for i in range(r):
+                distances = np.linalg.norm(X[i] - centers, axis=1)
+                closest = np.argmin(distances)
+                RM[i, closest] = 1
+            
+            new_centers = np.zeros((self.k, c))
+            # Recalculate the centroids
+            for j in range(self.k):
+                points_in_cluster = X[RM[:, j] == 1]
+                if len(points_in_cluster) > 0:
+                    new_centers[j] = np.mean(points_in_cluster, axis=0)
+            
+            # Check for convergence
+            if np.all(centers == new_centers):
+                break
+
             centers = new_centers
+
         self.centers = centers
         self.RM = RM
         return self
